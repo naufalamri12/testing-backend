@@ -1,0 +1,103 @@
+def secret = 'global'
+def server = 'ubuntu@172.31.2.248'
+def directory = '~/dumbflix-backend'
+def branch = 'master'
+def image = 'dumbflix-backend:latest'
+
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Pulling New Code') {
+            steps {
+                sshagent([secret]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${server} << EOF
+                        cd ${directory}
+                        git reset --hard HEAD
+                        git pull origin ${branch}
+                        exit
+                        EOF
+                    """
+                }
+            }
+        }
+
+        stage('Build Apps') {
+            steps {
+                sshagent([secret]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${server} << EOF
+                        cd ${directory}
+                        docker build -t ${image} .
+                        exit
+                        EOF
+                    """
+                }
+            }
+        }
+
+        stage('Test Application') {
+            steps {
+                sshagent([secret]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${server} << EOF
+                        cd ${directory}
+                        docker run --rm ${image} npm test
+                        exit
+                        EOF
+                    """
+                }
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                sshagent([secret]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${server} << EOF
+                        cd ${directory}
+                        docker compose down
+                        docker compose up -d --build
+                        exit
+                        EOF
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+
+        success {
+            withCredentials([
+                string(
+                    credentialsId: 'discord-webhook',
+                    variable: 'DISCORD_WEBHOOK'
+                )
+            ]) {
+                sh '''
+                    curl -H "Content-Type: application/json" \
+                    -d "{\"content\":\"Jenkins Job: ${JOB_NAME} | Build: #${BUILD_NUMBER} | Status: SUCCESS\"}" \
+                    "$DISCORD_WEBHOOK"
+                '''
+            }
+        }
+
+        failure {
+            withCredentials([
+                string(
+                    credentialsId: 'discord-webhook',
+                    variable: 'DISCORD_WEBHOOK'
+                )
+            ]) {
+                sh '''
+                    curl -H "Content-Type: application/json" \
+                    -d "{\"content\":\"Jenkins Job: ${JOB_NAME} | Build: #${BUILD_NUMBER} | Status: FAILURE\"}" \
+                    "$DISCORD_WEBHOOK"
+                '''
+            }
+        }
+    }
+}
