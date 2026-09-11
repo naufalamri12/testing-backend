@@ -69,20 +69,22 @@ pipeline {
 
     post {
 
-        success {
-            withCredentials([
-                string(
-                    credentialsId: 'discord-webhook',
-                    variable: 'DISCORD_WEBHOOK'
-                )
-            ]) {
-                sh '''
-                    curl -H "Content-Type: application/json" \
-                    -d "{\"content\":\"Jenkins Job: ${JOB_NAME} | Build: #${BUILD_NUMBER} | Status: SUCCESS\"}" \
-                    "$DISCORD_WEBHOOK"
-                '''
-            }
+    success {
+        withCredentials([
+            string(
+                credentialsId: 'discord-webhook',
+                variable: 'DISCORD_WEBHOOK'
+            )
+        ]) {
+            discordSend(
+                webhookURL: env.DISCORD_WEBHOOK,
+                title: "Jenkins Build SUCCESS",
+                description: "Job: ${env.JOB_NAME} | Build: #${env.BUILD_NUMBER}",
+                link: env.BUILD_URL,
+                result: 'SUCCESS'
+            )
         }
+    }
 
         failure {
             withCredentials([
@@ -98,6 +100,14 @@ pipeline {
                 '''
             }
                 discordSend(
+    failure {
+        withCredentials([
+            string(
+                credentialsId: 'discord-webhook',
+                variable: 'DISCORD_WEBHOOK'
+            )
+        ]) {
+            discordSend( cc00fc5 (fix test application)
                 webhookURL: env.DISCORD_WEBHOOK,
                 title: "Jenkins Build FAILURE",
                 description: "Job: ${env.JOB_NAME} | Build: #${env.BUILD_NUMBER}",
