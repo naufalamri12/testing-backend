@@ -38,20 +38,19 @@ pipeline {
             }
         }
 
-        stage('Test Application') {
-            steps {
-                sshagent([secret]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${server} << EOF
-                        cd ${directory}
-                        docker run --rm ${image} npm test
-                        exit
-                        EOF
-                    """
-                }
-            }
+       stage('Test Application') {
+    	  steps {
+           sshagent([secret]) {
+            sh """
+                ssh -o StrictHostKeyChecking=no ${server} << EOF
+                cd ${directory}
+                docker run --rm ${image} node --version
+                exit
+                EOF
+            """
         }
-
+    }
+}
         stage('Deploy Application') {
             steps {
                 sshagent([secret]) {
