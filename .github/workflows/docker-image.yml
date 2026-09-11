@@ -16,18 +16,15 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Build the Docker image
-      run: docker build -t naufalamri/dumbflix-backend .
-    
-    - name: Docker Login 
-      uses: actions/checkout@v4
+      run: docker build -t naufalamri/dumbflix-backend:latest .
+
+    - name: Docker Login
+      uses: docker/login-action@v3
       with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    username: ${{ secrets.DOCKERHUB_USERNAME }}
+    password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Docker Push
-      run: docker build -t naufalamri/dumbflix-backend
-
-
-
+    run: docker push naufalamri/dumbflix-backend:latest
 
 
