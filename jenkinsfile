@@ -97,6 +97,13 @@ pipeline {
                     "$DISCORD_WEBHOOK"
                 '''
             }
+                discordSend(
+                webhookURL: env.DISCORD_WEBHOOK,
+                title: "Jenkins Build FAILURE",
+                description: "Job: ${env.JOB_NAME} | Build: #${env.BUILD_NUMBER}",
+                link: env.BUILD_URL,
+                result: 'FAILURE'
+            )
         }
     }
 }
