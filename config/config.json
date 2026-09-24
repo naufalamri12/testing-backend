@@ -1,9 +1,9 @@
 {
   "development": {
     "username": "amri",
-    "password": "NAUFALamri",
+    "password": "PASSWORD_MYSQL",
     "database": "dumbflix",
-    "host": "172.31.9.29",
+    "host": "mysql-svc",
     "dialect": "mysql",
     "operatorsAliases": false
   },
